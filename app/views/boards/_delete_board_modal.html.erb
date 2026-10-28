@@ -1,0 +1,24 @@
+<div class="modal fade" id="deleteBoardModal" tabindex="-1" aria-labelledby="deleteBoardModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-surface modal-surface--compact">
+      <div class="modal-body modal-surface__body">
+        <span class="modal-heading__icon modal-heading__icon--danger"><i class="bi bi-trash3"></i></span>
+        <h2 class="confirm-title" id="deleteBoardModalLabel">Delete this board?</h2>
+        <p class="confirm-copy">
+          <strong data-delete-board-name>This board</strong> and every mark on it will be
+          permanently deleted. Anyone with the link will lose access.
+        </p>
+        <div class="confirm-warning">This cannot be undone.</div>
+
+        <form method="post" action="#" data-delete-board-form>
+          <input type="hidden" name="_method" value="delete">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <div class="confirm-actions">
+            <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Keep board</button>
+            <button type="submit" class="btn btn-danger">Delete forever</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

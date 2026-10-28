@@ -1,0 +1,58 @@
+<div class="modal fade" id="newBoardModal" tabindex="-1" aria-labelledby="newBoardModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-surface">
+      <div class="modal-header modal-surface__header">
+        <div class="modal-heading modal-heading--centered">
+          <span class="modal-heading__icon"><i class="bi bi-plus-lg"></i></span>
+          <div>
+            <h2 class="modal-title" id="newBoardModalLabel">Start a new board</h2>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <%= form_with url: boards_path, method: :post, local: true, class: "modal-form" do |form| %>
+        <div class="modal-body modal-surface__body">
+          <div class="form-field">
+            <label for="board_name">Board name</label>
+            <input
+              id="board_name"
+              name="name"
+              type="text"
+              class="form-control form-control-lg"
+              placeholder="e.g. Q4 launch brainstorm"
+              maxlength="80"
+              autocomplete="off"
+              required
+            >
+          </div>
+
+          <fieldset class="theme-fieldset">
+            <legend>Pick your canvas</legend>
+            <div class="theme-picker">
+              <% Board.theme_options.each_with_index do |theme, index| %>
+                <label class="theme-choice">
+                  <input type="radio" name="theme" value="<%= theme[:key] %>" <%= "checked" if index.zero? %>>
+                  <span class="theme-choice__visual" style="background-color: <%= theme[:background] %>;">
+                    <span class="theme-choice__dots" style="background-image: radial-gradient(<%= theme[:dots] %> 1px, transparent 1px);"></span>
+                    <span class="theme-choice__mark theme-choice__mark--a"></span>
+                    <span class="theme-choice__mark theme-choice__mark--b"></span>
+                    <span class="theme-choice__check"><i class="bi bi-check-lg"></i></span>
+                  </span>
+                  <span class="theme-choice__name"><%= theme[:name] %></span>
+                </label>
+              <% end %>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="modal-footer modal-surface__footer">
+          <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            Create board <i class="bi bi-arrow-right-short"></i>
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#FBF7F0">
+    <meta name="description" content="Tandem is a shared canvas for teams that think out loud. Draw together, instantly.">
+
+    <title><%= content_for?(:title) ? yield(:title) : page_title %></title>
+
+    <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) : page_title %>">
+    <meta property="og:description" content="A shared canvas for teams that think out loud.">
+    <meta property="og:type" content="website">
+
+    <meta name="action-cable-url" content="/cable">
+    <meta name="color-scheme" content="light">
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="icon" href="<%= asset_path("brand-icon.svg") %>" type="image/svg+xml">
+    <link rel="preload" href="<%= asset_path("fonts/plus-jakarta-sans-latin.woff2") %>" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="<%= asset_path("fonts/instrument-serif-latin-italic.woff2") %>" as="font" type="font/woff2" crossorigin>
+
+    <%= stylesheet_link_tag "vendor/bootstrap.min", "vendor/bootstrap-icons.min", "application" %>
+
+    <%= yield :head %>
+  </head>
+
+  <body class="<%= yield :page_class %>">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <%= yield %>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true">
+      <%= render "shared/flashes" %>
+    </div>
+
+    <noscript>
+      <div class="noscript-banner">Tandem needs JavaScript enabled to draw and collaborate live.</div>
+    </noscript>
+
+    <%= javascript_include_tag "vendor/bootstrap.bundle.min" %>
+    <%= javascript_include_tag "vendor/hotkeys.min" %>
+    <%= javascript_include_tag "application", type: "module" %>
+    <%= yield :page_scripts %>
+  </body>
+</html>

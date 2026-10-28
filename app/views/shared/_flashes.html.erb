@@ -1,0 +1,14 @@
+<% flash.each do |type, message| %>
+  <% next if message.blank? %>
+
+  <% variant = type.to_s == "alert" ? "danger" : "success" %>
+  <% icon = type.to_s == "alert" ? "exclamation-diamond" : "check2-circle" %>
+
+  <div class="toast flash-toast flash-toast--<%= variant %>" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5200">
+    <div class="toast-body">
+      <span class="flash-toast__icon"><i class="bi bi-<%= icon %>"></i></span>
+      <span class="flash-toast__message"><%= message %></span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Dismiss notification"></button>
+    </div>
+  </div>
+<% end %>

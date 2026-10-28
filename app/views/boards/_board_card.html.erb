@@ -1,0 +1,87 @@
+<% live_count = BoardPresence.count(board.id) %>
+
+<article
+  class="board-card"
+  data-board-card
+  data-name="<%= board.name.downcase %>"
+  data-search="<%= "#{board.name} #{board.creator_nickname}".downcase %>"
+  data-created-at="<%= board.created_at.to_f %>"
+  data-updated-at="<%= board.updated_at.to_f %>"
+>
+  <a class="board-card__hit" href="<%= board_path(board) %>" aria-label="Open board <%= board.name %>"></a>
+
+  <div class="board-card__preview">
+    <img
+      src="<%= thumbnail_board_path(board, v: board.updated_at.to_i) %>"
+      alt="Preview of <%= board.name %>"
+      loading="lazy"
+      width="640"
+      height="400"
+    >
+    <% if live_count.positive? %>
+      <div class="board-card__preview-top">
+        <span class="live-pill live-pill--card"><span class="live-pill__dot"></span><%= live_count %> live</span>
+      </div>
+    <% end %>
+    <span class="board-card__open-hint">Open canvas <i class="bi bi-arrow-up-right"></i></span>
+  </div>
+
+  <div class="board-card__body">
+    <div class="board-card__topline">
+      <span class="board-card__created">
+        <i class="bi bi-calendar3"></i>
+        <span class="board-card__created-label">Created</span>
+        <time datetime="<%= board.created_at.iso8601 %>"><%= board_time(board.created_at) %></time>
+      </span>
+
+      <div class="dropdown board-card__actions" data-board-actions>
+        <button
+          class="icon-button icon-button--subtle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          aria-label="Actions for <%= board.name %>"
+          data-bs-boundary="window"
+        >
+          <i class="bi bi-three-dots"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end board-menu">
+          <li>
+            <a class="dropdown-item" href="<%= board_path(board) %>">
+              <i class="bi bi-arrow-up-right-square"></i> Open board
+            </a>
+          </li>
+          <li>
+            <button class="dropdown-item" type="button" data-copy-url="<%= board_url(board) %>">
+              <i class="bi bi-link-45deg"></i> Copy board link
+            </button>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <button
+              class="dropdown-item text-danger"
+              type="button"
+              data-delete-board
+              data-board-name="<%= board.name %>"
+              data-delete-url="<%= board_path(board) %>"
+            >
+              <i class="bi bi-trash3"></i> Delete board
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="board-card__title"><%= board.name %></h3>
+
+    <div class="board-card__meta">
+      <span class="avatar avatar--xs" style="<%= avatar_style(board.creator_nickname) %>"><%= user_initials(board.creator_nickname) %></span>
+      <span>Started by <strong><%= board.creator_nickname %></strong></span>
+    </div>
+
+    <div class="board-card__footer">
+      <span class="board-card__activity"><i class="bi bi-clock-history"></i> Edited <%= board_activity(board.updated_at) %></span>
+      <span class="board-card__cta">Open <i class="bi bi-arrow-right"></i></span>
+    </div>
+  </div>
+</article>

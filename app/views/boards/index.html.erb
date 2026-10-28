@@ -1,0 +1,160 @@
+<% content_for :title, page_title("Your boards") %>
+<% content_for :page_class, "page--dashboard" %>
+
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-header__inner">
+      <a class="brand brand--dark" href="<%= root_path %>" aria-label="Tandem boards">
+        <%= brand_mark %>
+        <span class="brand__word">tandem<span class="brand__dot">.</span></span>
+      </a>
+
+      <nav class="app-nav" aria-label="Workspace navigation">
+        <a class="<%= nav_link_class(true) %>" href="<%= root_path %>">Boards</a>
+      </nav>
+
+      <div class="app-header__actions">
+        <button class="btn btn-primary btn-new-board" type="button" data-bs-toggle="modal" data-bs-target="#newBoardModal">
+          <i class="bi bi-plus-lg"></i>
+          <span>New board</span>
+        </button>
+
+        <div class="dropdown">
+          <button class="user-chip" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Your profile menu">
+            <span class="avatar avatar--sm" style="<%= avatar_style(current_nickname) %>"><%= current_user_initials %></span>
+            <span class="user-chip__name"><%= current_nickname %></span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+            <li class="user-dropdown__header">
+              <span class="avatar avatar--sm" style="<%= avatar_style(current_nickname) %>"><%= current_user_initials %></span>
+              <span>
+                <strong><%= current_nickname %></strong>
+              </span>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#identityModal">
+                <i class="bi bi-pencil"></i> Change nickname
+              </button>
+            </li>
+            <li>
+              <%= button_to leave_path, method: :delete, class: "dropdown-item text-danger", form: { class: "m-0" } do %>
+                <i class="bi bi-box-arrow-left"></i> Leave workspace
+              <% end %>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main" id="main-content">
+    <section class="dashboard-intro">
+      <div class="dashboard-intro__copy">
+        <h1>Welcome back,<br><em><%= first_name(current_nickname) %>.</em></h1>
+        <p>A quiet place for loud ideas. Pick up a canvas or start a fresh one.</p>
+
+        <div class="dashboard-intro__actions">
+          <button class="btn btn-light btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#newBoardModal">
+            <i class="bi bi-plus-lg"></i> Start something
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-intro__art" aria-hidden="true">
+        <div class="intro-ring intro-ring--one"></div>
+        <div class="intro-ring intro-ring--two"></div>
+        <div class="intro-spark">
+          <svg viewBox="0 0 120 120" fill="none">
+            <path d="M60 8C64 39 81 56 112 60C81 64 64 81 60 112C56 81 39 64 8 60C39 56 56 39 60 8Z" fill="#FF6541"/>
+          </svg>
+        </div>
+        <div class="intro-note">
+          <span class="intro-note__label">Today's reminder</span>
+          <p>Make room for<br><span>messy ideas.</span></p>
+          <svg viewBox="0 0 180 18" fill="none">
+            <path d="M3 12C48 4 112 3 176 9" stroke="#FF6541" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="intro-cursor"><i class="bi bi-cursor-fill"></i><span>You</span></div>
+        <div class="intro-stats">
+          <div><strong><%= @total_boards %></strong><span><%= "board".pluralize(@total_boards) %> in the studio</span></div>
+          <div><strong><%= @created_this_week %></strong><span>started this week</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="boards-section" id="boardsSection">
+      <div class="boards-toolbar">
+        <div class="boards-toolbar__title">
+          <h2>All boards</h2>
+          <span class="count-pill" data-board-count><%= @total_boards %></span>
+        </div>
+
+        <div class="boards-toolbar__tools">
+          <label class="search-field" aria-label="Search boards">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search boards&hellip;" autocomplete="off" data-board-search>
+            <kbd class="search-shortcut">/</kbd>
+          </label>
+
+          <label class="sort-field">
+            <i class="bi bi-arrow-down-up"></i>
+            <select data-board-sort aria-label="Sort boards">
+              <option value="updated">Last edited</option>
+              <option value="created">Newest</option>
+              <option value="name">A&ndash;Z</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <% if @boards.any? %>
+        <div class="boards-grid" data-board-grid>
+          <% @boards.each do |board| %>
+            <%= render "boards/board_card", board: board %>
+          <% end %>
+        </div>
+
+        <div class="search-empty" data-search-empty hidden>
+          <span class="search-empty__icon"><i class="bi bi-search"></i></span>
+          <h3>No boards found</h3>
+          <p>Try another search &mdash; or start a brand-new canvas.</p>
+          <button class="btn btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#newBoardModal">Create a board</button>
+        </div>
+      <% else %>
+        <div class="empty-boards">
+          <div class="empty-boards__art" aria-hidden="true">
+            <div class="empty-canvas">
+              <div class="empty-canvas__grid"></div>
+              <svg viewBox="0 0 240 130" fill="none">
+                <path d="M26 87C57 33 104 22 124 54C144 85 91 111 84 73C77 35 153 29 198 58" stroke="#FF6541" stroke-width="5" stroke-linecap="round"/>
+                <path d="M188 47L207 55L194 73" stroke="#6554E8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="50" cy="38" r="7" fill="#FFC857"/>
+                <rect x="172" y="79" width="32" height="24" rx="3" fill="#B8E3C7" transform="rotate(5 172 79)"/>
+              </svg>
+              <span class="empty-canvas__label">Your next big thing</span>
+            </div>
+          </div>
+          <div class="empty-boards__copy">
+            <span class="eyebrow"><span class="eyebrow__spark"><i class="bi bi-magic"></i></span> A blank page with potential</span>
+            <h2>Your first board is the hardest.<br><em>Only takes a second.</em></h2>
+            <p>Start with a blank canvas, invite your crew with a link, and watch the ideas take shape.</p>
+            <button class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#newBoardModal">
+              <i class="bi bi-plus-lg"></i> Create your first board
+            </button>
+          </div>
+        </div>
+      <% end %>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span class="app-footer__brand">tandem<span>.</span> &mdash; ideas, together.</span>
+  </footer>
+</div>
+
+<%= render "boards/create_board_modal" %>
+<%= render "boards/delete_board_modal" %>
+<%= render "boards/identity_modal" %>

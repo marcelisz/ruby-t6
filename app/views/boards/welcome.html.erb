@@ -1,0 +1,164 @@
+<% content_for :title, page_title("Think together, draw instantly") %>
+<% content_for :page_class, "page--welcome" %>
+
+<div class="landing-shell">
+  <header class="landing-nav">
+    <a class="brand brand--dark" href="<%= root_path %>" aria-label="Tandem home">
+      <%= brand_mark %>
+      <span class="brand__word">tandem<span class="brand__dot">.</span></span>
+    </a>
+
+    <div class="landing-nav__right">
+      <span class="nav-badge">No sign-up</span>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="landing-hero">
+      <div class="landing-copy">
+        <h1 class="landing-title">
+          Big ideas<br>
+          look better <em>together.</em>
+        </h1>
+
+        <p class="landing-subtitle">
+          A shared canvas for teams that think out loud. Sketch, scribble and solve
+          together &mdash; live, and without the setup.
+        </p>
+
+        <%= form_with url: enter_path, method: :post, local: true, class: "entry-form" do |form| %>
+          <div class="entry-field">
+            <label class="visually-hidden" for="nickname">Pick a nickname</label>
+            <span class="entry-field__icon" aria-hidden="true"><i class="bi bi-person"></i></span>
+            <input
+              id="nickname"
+              name="nickname"
+              type="text"
+              class="entry-field__input"
+              placeholder="Pick a nickname"
+              maxlength="32"
+              autocomplete="nickname"
+              autocapitalize="words"
+              spellcheck="false"
+              required
+              autofocus
+            >
+            <button class="btn entry-field__button" type="submit">
+              Enter workspace
+              <i class="bi bi-arrow-right-short"></i>
+            </button>
+          </div>
+        <% end %>
+
+        <div class="landing-trust">
+          <div class="avatar-stack" aria-hidden="true">
+            <span class="avatar avatar--xs" style="--avatar-color: #6554E8;">MA</span>
+            <span class="avatar avatar--xs" style="--avatar-color: #0E8A79;">JT</span>
+            <span class="avatar avatar--xs" style="--avatar-color: #D62F72;">RK</span>
+            <span class="avatar avatar--xs avatar--more">+</span>
+          </div>
+          <p>Built for brainstorms, standups<br class="d-none d-md-block"> and the ideas in between.</p>
+        </div>
+      </div>
+
+      <div class="landing-visual" aria-hidden="true">
+        <div class="demo-frame">
+          <div class="demo-frame__bar">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <span class="demo-frame__title">product brainstorm</span>
+            <span class="live-pill live-pill--small"><span class="live-pill__dot"></span>Live</span>
+          </div>
+
+          <div class="demo-canvas">
+            <div class="demo-canvas__grid"></div>
+
+            <div class="demo-heading">
+              <span class="demo-kicker">North star</span>
+              <h2>How might we make<br>teamwork feel <span>lighter?</span></h2>
+            </div>
+
+            <svg class="demo-doodle demo-doodle--underline" viewBox="0 0 290 32" fill="none">
+              <path d="M4 20C64 10 156 5 284 13" stroke="#FF6541" stroke-width="7" stroke-linecap="round"/>
+              <path d="M28 27C93 19 183 16 257 20" stroke="#FF6541" stroke-width="4" stroke-linecap="round" opacity=".45"/>
+            </svg>
+
+            <div class="demo-note demo-note--butter">
+              <span class="demo-note__pin"></span>
+              <span class="demo-note__label">Maya &middot; 2m</span>
+              <p>Less meetings.<br>More making.</p>
+            </div>
+
+            <div class="demo-note demo-note--mint">
+              <span class="demo-note__pin"></span>
+              <span class="demo-note__label">Jon &middot; 1m</span>
+              <p>One canvas for<br>the whole crew.</p>
+            </div>
+
+            <svg class="demo-doodle demo-doodle--arrow" viewBox="0 0 170 120" fill="none">
+              <path d="M8 103C42 92 77 64 118 24" stroke="#6554E8" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="1 12"/>
+              <path d="M100 26L119 22L118 42" stroke="#6554E8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="demo-sticker">
+              <i class="bi bi-lightning-charge-fill"></i>
+              <span>Ship the joy,<br>not the friction.</span>
+            </div>
+
+            <div class="demo-cursor demo-cursor--maya">
+              <svg viewBox="0 0 24 28" fill="none"><path d="M3 2.5L21 15.2L12.4 17.2L8.8 25.5L3 2.5Z" fill="#D62F72" stroke="#fff" stroke-width="1.6"/></svg>
+              <span>Maya</span>
+            </div>
+
+            <div class="demo-cursor demo-cursor--jon">
+              <svg viewBox="0 0 24 28" fill="none"><path d="M3 2.5L21 15.2L12.4 17.2L8.8 25.5L3 2.5Z" fill="#0E8A79" stroke="#fff" stroke-width="1.6"/></svg>
+              <span>Jon</span>
+            </div>
+
+            <div class="demo-zoom">100%</div>
+          </div>
+        </div>
+
+        <div class="floating-note floating-note--top">
+          <span class="floating-note__icon"><i class="bi bi-cloud-check"></i></span>
+          <span><strong>Always saved</strong>Every mark, forever</span>
+        </div>
+
+        <div class="floating-note floating-note--bottom">
+          <span class="floating-note__icon floating-note__icon--peach"><i class="bi bi-people"></i></span>
+          <span><strong>Shared instantly</strong>One link is all it takes</span>
+        </div>
+
+        <div class="landing-blob landing-blob--one"></div>
+        <div class="landing-blob landing-blob--two"></div>
+      </div>
+    </section>
+
+    <section class="feature-strip" aria-label="Why Tandem">
+      <article class="feature">
+        <span class="feature__icon feature__icon--coral"><i class="bi bi-broadcast"></i></span>
+        <div>
+          <h3>Live by default</h3>
+          <p>Strokes, cursors and ideas appear the moment they happen.</p>
+        </div>
+      </article>
+      <article class="feature">
+        <span class="feature__icon feature__icon--violet"><i class="bi bi-pin-angle"></i></span>
+        <div>
+          <h3>Nothing gets lost</h3>
+          <p>Every board is stored automatically, ready when you return.</p>
+        </div>
+      </article>
+      <article class="feature">
+        <span class="feature__icon feature__icon--mint"><i class="bi bi-magic"></i></span>
+        <div>
+          <h3>Zero friction</h3>
+          <p>No accounts, no onboarding. Share a link, start creating.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="landing-footer">
+    <span>&copy; <%= Time.current.year %> Tandem Studio</span>
+  </footer>
+</div>

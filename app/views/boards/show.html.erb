@@ -1,0 +1,408 @@
+<% content_for :title, page_title(@board.name) %>
+<% content_for :page_class, "page--editor" %>
+
+<%
+  editor_payload = {
+    board: {
+      id: @board.id,
+      name: @board.name,
+      theme: @board.theme,
+      background: @theme[:background],
+      dots: @theme[:dots],
+      url: board_url(@board),
+      thumbnail_url: thumbnail_board_url(@board),
+      elements_count: @board.elements_count
+    },
+    user: {
+      nickname: current_nickname,
+      color: current_user_color,
+      initials: current_user_initials
+    },
+    elements: @elements.map(&:editor_json),
+    last_element_id: @last_element_id
+  }
+%>
+
+<script type="application/json" id="boardPayload"><%= board_json_for_script(editor_payload) %></script>
+
+<div class="editor-shell" id="boardEditor" data-editor>
+  <header class="editor-topbar">
+    <div class="editor-topbar__left">
+      <a class="editor-back" href="<%= root_path %>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Back to all boards" aria-label="Back to all boards">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+
+      <span class="editor-topbar__divider"></span>
+
+      <div class="editor-board-meta">
+        <div class="editor-sync" data-sync-wrapper role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="visually-hidden" data-sync-label>Connecting&hellip;</span>
+        </div>
+        <button class="editor-title" type="button" data-bs-toggle="modal" data-bs-target="#renameBoardModal" title="Rename this board">
+          <span data-board-title><%= @board.name %></span>
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-topbar__right">
+      <div class="editor-presence">
+        <div class="avatar-stack editor-presence__avatars" data-presence-avatars>
+          <span class="avatar avatar--sm" style="<%= avatar_style(current_nickname) %>" data-self-avatar><%= current_user_initials %></span>
+        </div>
+      </div>
+
+      <button class="btn editor-share" type="button" data-bs-toggle="modal" data-bs-target="#shareBoardModal" aria-label="Share board link">
+        <i class="bi bi-send"></i>
+        <span>Share</span>
+      </button>
+
+      <div class="dropdown">
+        <button class="icon-button icon-button--bordered editor-menu-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Board options">
+          <i class="bi bi-three-dots"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end editor-menu">
+          <li>
+            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#renameBoardModal">
+              <i class="bi bi-pencil"></i> Rename board
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item" type="button" data-export-jpg>
+              <i class="bi bi-download"></i> Download as JPG
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#shortcutsModal">
+              <i class="bi bi-keyboard"></i> Keyboard shortcuts
+            </button>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <button
+              class="dropdown-item text-danger"
+              type="button"
+              data-delete-board
+              data-board-name="<%= @board.name %>"
+              data-delete-url="<%= board_path(@board) %>"
+            >
+              <i class="bi bi-trash3"></i> Delete board
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <main class="editor-stage" id="main-content">
+    <canvas class="board-canvas" id="boardCanvas" role="application" aria-label="Collaborative drawing canvas" tabindex="0"></canvas>
+    <canvas class="cursor-canvas" id="cursorCanvas" aria-hidden="true"></canvas>
+
+    <div class="canvas-empty" data-canvas-empty <%= "hidden" unless @elements.empty? %>>
+      <div class="canvas-empty__badge"><i class="bi bi-pencil-fill"></i></div>
+      <h1>Make the first mark.</h1>
+      <p>Grab a pen, add a sticky note, or simply start a doodle.<br>Everything lands here in real time.</p>
+      <div class="canvas-empty__keys">
+        <span><kbd>P</kbd> Pen</span>
+        <span><kbd>N</kbd> Note</span>
+        <span><kbd>Space</kbd> Pan</span>
+      </div>
+    </div>
+
+    <aside class="tool-rail" role="toolbar" aria-label="Drawing tools">
+      <div class="tool-rail__group">
+        <button class="tool-button" type="button" data-tool="hand" data-bs-toggle="tooltip" data-bs-placement="right" title="Move canvas (H)" aria-label="Move canvas">
+          <i class="bi bi-hand-index"></i>
+        </button>
+        <button class="tool-button is-active" type="button" data-tool="pen" data-bs-toggle="tooltip" data-bs-placement="right" title="Pen (P)" aria-label="Pen" aria-pressed="true">
+          <i class="bi bi-pencil-fill"></i>
+        </button>
+        <button class="tool-button" type="button" data-tool="highlighter" data-bs-toggle="tooltip" data-bs-placement="right" title="Highlighter (L)" aria-label="Highlighter">
+          <i class="bi bi-highlighter"></i>
+        </button>
+        <button class="tool-button" type="button" data-tool="eraser" data-bs-toggle="tooltip" data-bs-placement="right" title="Eraser (E)" aria-label="Eraser">
+          <i class="bi bi-eraser-fill"></i>
+        </button>
+      </div>
+
+      <div class="tool-rail__divider" role="separator"></div>
+
+      <div class="tool-rail__group">
+        <button class="tool-button tool-button--shape" type="button" data-shape-toggle data-bs-toggle="tooltip" data-bs-placement="right" title="Shapes (S)" aria-label="Shapes" aria-expanded="false">
+          <i class="bi bi-square" data-shape-icon></i>
+          <span class="tool-button__caret"></span>
+        </button>
+        <button class="tool-button" type="button" data-tool="note" data-bs-toggle="tooltip" data-bs-placement="right" title="Sticky note (N)" aria-label="Sticky note">
+          <i class="bi bi-sticky-fill"></i>
+        </button>
+        <button class="tool-button" type="button" data-tool="text" data-bs-toggle="tooltip" data-bs-placement="right" title="Text (T)" aria-label="Text">
+          <i class="bi bi-fonts"></i>
+        </button>
+      </div>
+
+      <div class="tool-rail__divider" role="separator"></div>
+
+      <div class="tool-rail__group tool-rail__group--style">
+        <button class="tool-button tool-button--color" type="button" data-color-toggle data-bs-toggle="tooltip" data-bs-placement="right" title="Ink colour" aria-label="Choose ink colour">
+          <span class="ink-swatch" data-ink-swatch></span>
+        </button>
+        <button class="tool-button tool-button--width" type="button" data-width-toggle data-bs-toggle="tooltip" data-bs-placement="right" title="Stroke size" aria-label="Choose stroke size">
+          <span class="size-dot" data-size-preview></span>
+        </button>
+      </div>
+
+      <div class="tool-rail__divider" role="separator"></div>
+
+      <div class="tool-rail__group tool-rail__group--history">
+        <button class="tool-button" type="button" data-undo data-bs-toggle="tooltip" data-bs-placement="right" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </button>
+        <button class="tool-button" type="button" data-redo data-bs-toggle="tooltip" data-bs-placement="right" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+    </aside>
+
+    <div class="style-panel color-panel" data-color-panel hidden>
+      <div class="color-grid">
+        <% %w[#191521 #EF5533 #FFB703 #0E8A79 #2563EB #7C3AED #D62F72 #8A8178].each_with_index do |color, index| %>
+          <button
+            class="color-swatch <%= "is-active" if index.zero? %>"
+            type="button"
+            style="--swatch: <%= color %>;"
+            data-color="<%= color %>"
+            aria-label="Use colour <%= color %>"
+          ></button>
+        <% end %>
+        <label class="color-swatch color-swatch--custom" aria-label="Choose a custom colour">
+          <i class="bi bi-plus-lg"></i>
+          <input type="color" value="#191521" data-color-custom>
+        </label>
+      </div>
+    </div>
+
+    <div class="style-panel width-panel" data-width-panel hidden>
+      <div class="width-grid">
+        <% [[2, 6], [4, 10], [8, 16], [14, 24]].each do |width, preview| %>
+          <button class="width-choice <%= "is-active" if width == 4 %>" type="button" data-width="<%= width %>" aria-label="Stroke width <%= width %>">
+            <span style="width: <%= preview %>px; height: <%= preview %>px;"></span>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="shape-menu" data-shape-menu hidden>
+      <button type="button" data-tool="rectangle" class="shape-choice"><i class="bi bi-square"></i><span>Rectangle</span><kbd>R</kbd></button>
+      <button type="button" data-tool="ellipse" class="shape-choice"><i class="bi bi-circle"></i><span>Ellipse</span><kbd>O</kbd></button>
+      <button type="button" data-tool="line" class="shape-choice"><i class="bi bi-slash-lg"></i><span>Line</span></button>
+      <button type="button" data-tool="arrow" class="shape-choice"><i class="bi bi-arrow-up-right"></i><span>Arrow</span></button>
+    </div>
+
+    <div class="zoom-dock" role="group" aria-label="Canvas zoom">
+      <button class="zoom-dock__button mobile-history" type="button" data-undo aria-label="Undo" title="Undo" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
+      <button class="zoom-dock__button mobile-history" type="button" data-redo aria-label="Redo" title="Redo" disabled><i class="bi bi-arrow-clockwise"></i></button>
+      <span class="zoom-dock__divider mobile-history"></span>
+      <button class="zoom-dock__button" type="button" data-zoom-out aria-label="Zoom out" title="Zoom out"><i class="bi bi-dash-lg"></i></button>
+      <button class="zoom-dock__value" type="button" data-zoom-reset aria-label="Reset zoom" title="Reset to 100%"><span data-zoom-label>100%</span></button>
+      <button class="zoom-dock__button" type="button" data-zoom-in aria-label="Zoom in" title="Zoom in"><i class="bi bi-plus-lg"></i></button>
+      <span class="zoom-dock__divider"></span>
+      <button class="zoom-dock__button" type="button" data-zoom-fit aria-label="Fit drawing" data-bs-toggle="tooltip" data-bs-placement="top" title="Fit to drawing">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
+      <button class="zoom-dock__button" type="button" data-bs-toggle="modal" data-bs-target="#shortcutsModal" aria-label="Keyboard shortcuts" title="Shortcuts (?)">
+        <i class="bi bi-question-lg"></i>
+      </button>
+    </div>
+  </main>
+</div>
+
+<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-surface modal-surface--compact">
+      <div class="modal-header modal-surface__header">
+        <div class="modal-heading modal-heading--centered">
+          <span class="modal-heading__icon modal-heading__icon--note"><i class="bi bi-sticky-fill"></i></span>
+          <div>
+            <h2 class="modal-title" id="noteModalLabel">Drop a sticky note</h2>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form data-note-form>
+        <div class="modal-body modal-surface__body">
+          <div class="form-field">
+            <label for="noteText">Your note</label>
+            <textarea id="noteText" class="form-control" rows="4" maxlength="1000" placeholder="What&rsquo;s on your mind?" data-note-text required></textarea>
+          </div>
+          <fieldset class="note-color-field">
+            <legend>Paper colour</legend>
+            <div class="note-colors">
+              <% [["Butter", "#FFD97D"], ["Coral", "#FFB49F"], ["Mint", "#B9E3C8"], ["Lilac", "#D8CCFF"], ["Sky", "#BFD9FF"]].each_with_index do |(name, color), index| %>
+                <label class="note-color" style="--note-color: <%= color %>;" title="<%= name %>">
+                  <input type="radio" name="note_color" value="<%= color %>" aria-label="<%= name %> note colour" <%= "checked" if index.zero? %>>
+                  <span><i class="bi bi-check-lg"></i></span>
+                </label>
+              <% end %>
+            </div>
+          </fieldset>
+        </div>
+        <div class="modal-footer modal-surface__footer">
+          <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Place note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="textModal" tabindex="-1" aria-labelledby="textModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-surface modal-surface--compact">
+      <div class="modal-header modal-surface__header">
+        <div class="modal-heading modal-heading--centered">
+          <span class="modal-heading__icon"><i class="bi bi-type"></i></span>
+          <div>
+            <h2 class="modal-title" id="textModalLabel">Add some words</h2>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form data-text-form>
+        <div class="modal-body modal-surface__body">
+          <div class="form-field">
+            <label for="textContent">Text</label>
+            <textarea id="textContent" class="form-control" rows="4" maxlength="2000" placeholder="Type something worth remembering&hellip;" data-text-content required></textarea>
+          </div>
+          <fieldset class="text-size-field">
+            <legend>Type size</legend>
+            <div class="text-size-options">
+              <% [["Small", 24], ["Medium", 32], ["Large", 48]].each_with_index do |(label, size), index| %>
+                <label class="text-size-choice">
+                  <input type="radio" name="font_size" value="<%= size %>" <%= "checked" if index == 1 %>>
+                  <span style="font-size: <%= size / 2 %>px;"><%= label %></span>
+                </label>
+              <% end %>
+            </div>
+          </fieldset>
+        </div>
+        <div class="modal-footer modal-surface__footer">
+          <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add text</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="renameBoardModal" tabindex="-1" aria-labelledby="renameBoardModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-surface modal-surface--compact">
+      <div class="modal-header modal-surface__header">
+        <div class="modal-heading">
+          <span class="modal-heading__icon"><i class="bi bi-pencil"></i></span>
+          <div>
+            <h2 class="modal-title" id="renameBoardModalLabel">Rename board</h2>
+            <p>A good name sets the scene.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form data-rename-form>
+        <div class="modal-body modal-surface__body">
+          <div class="form-field">
+            <label for="boardNameInput">Board name</label>
+            <input id="boardNameInput" type="text" class="form-control form-control-lg" value="<%= @board.name %>" maxlength="80" required data-rename-input>
+          </div>
+        </div>
+        <div class="modal-footer modal-surface__footer">
+          <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save name</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="shareBoardModal" tabindex="-1" aria-labelledby="shareBoardModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-surface modal-surface--compact">
+      <div class="modal-header modal-surface__header">
+        <div class="modal-heading modal-heading--centered">
+          <span class="modal-heading__icon modal-heading__icon--mint"><i class="bi bi-send"></i></span>
+          <div>
+            <h2 class="modal-title" id="shareBoardModalLabel">Invite your crew</h2>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body modal-surface__body">
+        <div class="share-callout">
+          <div class="share-callout__avatars">
+            <span class="avatar avatar--sm" style="<%= avatar_style(current_nickname) %>"><%= current_user_initials %></span>
+            <span class="share-callout__plus"><i class="bi bi-plus-lg"></i></span>
+            <span class="share-callout__ghost"><i class="bi bi-person"></i></span>
+          </div>
+          <p><strong>Anyone with this link can join.</strong></p>
+        </div>
+
+        <div class="share-link">
+          <input type="text" value="<%= board_url(@board) %>" readonly data-share-url aria-label="Board link">
+          <button class="btn btn-primary" type="button" data-copy-share>
+            <i class="bi bi-link-45deg"></i> <span>Copy link</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="shortcutsModal" tabindex="-1" aria-labelledby="shortcutsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-surface">
+      <div class="modal-header modal-surface__header">
+        <div class="modal-heading">
+          <span class="modal-heading__icon"><i class="bi bi-keyboard"></i></span>
+          <div>
+            <h2 class="modal-title" id="shortcutsModalLabel">Keyboard shortcuts</h2>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body modal-surface__body">
+        <div class="shortcut-grid">
+          <div class="shortcut-group">
+            <h3>Tools</h3>
+            <div class="shortcut-row"><span>Pen</span><kbd>P</kbd></div>
+            <div class="shortcut-row"><span>Highlighter</span><kbd>L</kbd></div>
+            <div class="shortcut-row"><span>Eraser</span><kbd>E</kbd></div>
+            <div class="shortcut-row"><span>Rectangle</span><kbd>R</kbd></div>
+            <div class="shortcut-row"><span>Ellipse</span><kbd>O</kbd></div>
+            <div class="shortcut-row"><span>Sticky note</span><kbd>N</kbd></div>
+            <div class="shortcut-row"><span>Text</span><kbd>T</kbd></div>
+            <div class="shortcut-row"><span>Move canvas</span><kbd>H</kbd></div>
+          </div>
+          <div class="shortcut-group">
+            <h3>Canvas</h3>
+            <div class="shortcut-row"><span>Pan while drawing</span><kbd>Space + drag</kbd></div>
+            <div class="shortcut-row"><span>Zoom in / out</span><kbd>+ / &minus;</kbd></div>
+            <div class="shortcut-row"><span>Reset zoom</span><kbd>0</kbd></div>
+            <div class="shortcut-row"><span>Undo</span><kbd>&#8984;/Ctrl + Z</kbd></div>
+            <div class="shortcut-row"><span>Redo</span><kbd>&#8984;/Ctrl + Shift + Z</kbd></div>
+            <div class="shortcut-row"><span>Close panels</span><kbd>Esc</kbd></div>
+            <div class="shortcut-row"><span>Shortcut guide</span><kbd>?</kbd></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= render "boards/delete_board_modal" %>
+
+<% content_for :page_scripts do %>
+  <%= javascript_include_tag "vendor/actioncable" %>
+  <%= javascript_include_tag "vendor/perfect-freehand" %>
+  <%= javascript_include_tag "vendor/file-saver.min" %>
+  <%= javascript_include_tag "board_editor", type: "module" %>
+<% end %>
